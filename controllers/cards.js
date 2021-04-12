@@ -1,77 +1,69 @@
+/* eslint-disable arrow-parens */
+/* eslint-disable eqeqeq */
 /* eslint-disable no-unused-vars */
 const Card = require('../models/card');
+const { BadRequestError } = require('../errors/BadRequestError');
+const { NotFoundError } = require('../errors/NotFoundError');
+const { ForbiddenError } = require('../errors/ForbiddenError');
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-  Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else res.status(500).send({ message: err.message });
-    });
+  Card.validate({ name, link, owner: req.user._id }).then(() => {
+    Card.create({ name, link, owner: req.user._id })
+      .then((card) => {
+        res.send({ data: card });
+      })
+      .catch(next);
+  }).catch(() => {
+    next(new BadRequestError('Неверные данные'));
+  });
 };
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 };
-module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail(() => {
-      const error = new Error('Такой карточки нет');
-      error.statusCode = 404;
-      throw error;
-    })
-    .then(() => {
-      res.send({ message: 'Пост удален' });
+module.exports.deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
+    .then(card => {
+      if (!card) {
+        throw new NotFoundError('Карточки с таким id не существует');
+      } else if (card.owner.toString() === req.user._id) {
+        Card.findByIdAndRemove(card._id).then(del => {
+          res.send(del);
+        });
+      } else throw new ForbiddenError('Нет доступа');
+    }).catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
+    });
+};
+module.exports.likeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(req.params.cardId, {
+    $addToSet: { likes: req.user._id },
+  }, { new: true })
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточки с таким id не существует');
+      } else res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
     });
 };
-module.exports.likeCard = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
-    .orFail(() => {
-      const error = new Error('Такой карточки нет');
-      error.statusCode = 404;
-      throw error;
-    })
-    .then((likes) => res.send({ data: likes }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
-};
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
-    .orFail(() => {
-      const error = new Error('Такой карточки нет');
-      error.statusCode = 404;
-      throw error;
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточки с таким id не существует');
+      } else res.send({ data: card });
     })
-    .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
     });
 };

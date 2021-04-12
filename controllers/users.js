@@ -1,94 +1,103 @@
 /* eslint-disable arrow-parens */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+const { BadRequestError } = require('../errors/BadRequestError');
+const { ConflictError } = require('../errors/ConflictError');
+const { NotFoundError } = require('../errors/NotFoundError');
 const User = require('../models/user');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  bcrypt.hash(password, 10)
-    .then((hash) => {
-      User.create({
-        name, about, avatar, email, password: hash,
+  if (!password) {
+    throw new BadRequestError('Пароль не может быть пустым');
+  }
+  User.validate({
+    name, about, avatar, email, password,
+  }).then(() => {
+    bcrypt.hash(password, 10)
+      .then((hash) => {
+        User.create({
+          name, about, avatar, email, password: hash,
+        })
+          .then((user) => {
+            res.status(201).send({ data: user.toJSON() });
+          })
+          .catch((err) => {
+            if (err.name === 'ValidationError') {
+              next(new BadRequestError('Неверные данные'));
+            } else if (err.code === 11000) {
+              next(new ConflictError('Пользователь с таким email уже существует'));
+            } else {
+              next(err);
+            }
+          });
       });
-    })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+  }).catch((err) => {
+    next(new BadRequestError(err.message));
+  });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => {
-      res.status(500).send({ message: err.message });
-    });
+    .catch(next);
 };
-module.exports.getUser = (req, res) => {
+module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(() => {
-      const error = new Error('Такого пользователя нет');
-      error.statusCode = 404;
-      throw error;
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователя с таким id не существует');
+      } else res.send({ data: user });
     })
-    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
     });
 };
-module.exports.updateUser = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, { name: req.body.name, about: req.body.about })
-    .orFail(() => {
-      const error = new Error('Такого пользователя нет');
-      error.statusCode = 404;
-      throw error;
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователя с таким id не существует');
+      } else res.send({ data: user });
     })
-    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
+    });
+};
+module.exports.updateUser = (req, res, next) => {
+  User.findByIdAndUpdate(req.user._id, { name: req.body.name, about: req.body.about },
+    { runValidators: true })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователя с таким id не существует');
+      } else res.send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, { avatar: req.body.avatar })
-    .orFail(() => {
-      const error = new Error('Такого пользователя нет');
-      error.statusCode = 404;
-      throw error;
+module.exports.updateAvatar = (req, res, next) => {
+  User.findByIdAndUpdate(req.user._id, { avatar: req.body.avatar }, { runValidators: true })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователя с таким id не существует');
+      } else res.send(user);
     })
-    .then((avatar) => res.send({ data: avatar }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверные данные' });
-      } else
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
+        next(new BadRequestError('Неверные данные'));
+      } else next(err);
     });
 };
 
@@ -96,11 +105,8 @@ module.exports.login = (req, res) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then(user => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: 3600000 * 24 * 7 });
       res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true })
         .end();
-    })
-    .catch(err => {
-      res.status(401).send({ message: err.message });
     });
 };
