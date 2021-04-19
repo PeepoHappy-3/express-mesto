@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
@@ -24,6 +25,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(bodyParser.json());
+app.use(requestLogger);
 
 app.post('/signin', validateUserLogin, login);
 app.post('/signup', validateUserCreate, createUser);
@@ -36,7 +38,7 @@ app.use('/', require('./routes/cards'));
 app.use('*', (req, res) => {
   throw new NotFoundError('Страница не найдена');
 });
-
+app.use(errors());
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
