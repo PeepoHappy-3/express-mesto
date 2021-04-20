@@ -11,7 +11,7 @@ module.exports.createCard = (req, res, next) => {
   Card.validate({ name, link, owner: req.user._id }).then(() => {
     Card.create({ name, link, owner: req.user._id })
       .then((card) => {
-        res.send({ data: card });
+        res.send({ card });
       })
       .catch(next);
   }).catch(() => {
@@ -46,7 +46,7 @@ module.exports.likeCard = (req, res, next) => {
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
-      } else res.send({ data: card });
+      } else res.send({ card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -59,7 +59,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
-      } else res.send({ data: card });
+      } else res.send({ card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
