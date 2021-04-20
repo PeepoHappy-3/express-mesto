@@ -52,7 +52,6 @@ module.exports.validateUpdateUser = celebrate({
 
 module.exports.validateUpdateAvatar = celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
   body: Joi.object().keys({
     avatar: Joi.string().regex(reg),
@@ -64,13 +63,11 @@ module.exports.validateGetUser = celebrate({
     userId: Joi.string().length(24).hex().required(),
   }),
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
 });
 
 module.exports.validateCreateCard = celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
@@ -88,13 +85,11 @@ module.exports.validateDeleteCard = celebrate({
     cardId: Joi.string().length(24).hex().required(),
   }),
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
 });
 
 module.exports.validatePutLike = celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
   params: Joi.object().keys({
     cardId: Joi.string().length(24).hex().required(),
@@ -102,7 +97,6 @@ module.exports.validatePutLike = celebrate({
 });
 module.exports.validateDeleteLike = celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
   params: Joi.object().keys({
     cardId: Joi.string().length(24).hex().required(),
