@@ -43,11 +43,10 @@ module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, {
     $addToSet: { likes: [req.user._id] },
   }, { new: true })
-    .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
-      } else res.send(card);
+      } else card.populate(['owner', 'likes']).execPopulate().then(cards => res.send(cards)).catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -61,7 +60,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
-      } else res.send(card);
+      } else card.populate(['owner', 'likes']).execPopulate().then(cards => res.send(cards)).catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
