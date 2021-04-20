@@ -44,7 +44,7 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((users) => res.send({ data: users }))
+    .then((users) => res.send(users))
     .catch(next);
 };
 module.exports.getUser = (req, res, next) => {
@@ -52,7 +52,7 @@ module.exports.getUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователя с таким id не существует');
-      } else res.send({ data: user });
+      } else res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -65,7 +65,7 @@ module.exports.getCurrentUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователя с таким id не существует');
-      } else res.send({ data: user });
+      } else res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -79,7 +79,7 @@ module.exports.updateUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователя с таким id не существует');
-      } else res.send({ data: user });
+      } else res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
