@@ -12,7 +12,7 @@ module.exports.createCard = (req, res, next) => {
     Card.create({ name, link, owner: req.user._id })
       .then((card) => {
         res.send(card);
-      })
+      }).populate(['owner', 'likes'])
       .catch(next);
   }).catch(() => {
     next(new BadRequestError('Неверные данные'));
