@@ -42,11 +42,11 @@ module.exports.deleteCard = (req, res, next) => {
 module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, {
     $addToSet: { likes: req.user._id },
-  }, { new: true }).populate(['owner', 'likes'])
+  }, { new: true })
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
-      } else res.send(card);
+      } else res.send(card.likes);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
