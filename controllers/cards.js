@@ -10,9 +10,9 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.validate({ name, link, owner: req.user._id }).then(() => {
     Card.create({ name, link, owner: req.user._id })
-      .then((card) => {
-        res.send(card);
-      }).populate(['owner', 'likes'])
+      .then((cards) => {
+        cards.populate(['owner', 'likes']).execPopulate().then((card) => res.send(card)).catch(next);
+      })
       .catch(next);
   }).catch(() => {
     next(new BadRequestError('Неверные данные'));
