@@ -7,6 +7,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
@@ -24,6 +25,10 @@ const allowedCors = [
   'http://mesto-praktikum.nomoredomains.monster/',
   'http://localhost:3000',
 ];
+const corsOptions = {
+  origin: allowedCors,
+  optionsSuccessStatus: 200,
+};
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -33,17 +38,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(bodyParser.json());
 app.use(requestLogger);
-app.use((req, res, next) => {
-  const { origin } = req.headers;
-  if (allowedCors.includes(origin)) {
-    res.status(200).header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.header('Access-Control-Allow-Credentials', true);
-  res.header();
-  next();
-});
+app.use(cors());
 app.post('/signin', validateUserLogin, login);
 app.post('/signup', validateUserCreate, createUser);
 app.use(cookieParser());
