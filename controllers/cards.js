@@ -11,7 +11,7 @@ module.exports.createCard = (req, res, next) => {
   Card.validate({ name, link, owner: req.user._id }).then(() => {
     Card.create({ name, link, owner: req.user._id })
       .then((card) => {
-        res.send({ card });
+        res.send(card);
       })
       .catch(next);
   }).catch(() => {
