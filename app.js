@@ -19,6 +19,11 @@ const app = express();
 
 const { PORT = 3000 } = process.env;
 
+const allowedCors = [
+  'https://mesto-praktikum.nomoredomains.monster',
+  'http://mesto-praktikum.nomoredomains.monster/',
+  'localhost:3000',
+];
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -29,7 +34,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(bodyParser.json());
 app.use(requestLogger);
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const { origin } = req.headers;
+  res.header('Access-Control-Allow-Origin', origin);
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
   res.header('Access-Control-Allow-Credentials', true);
