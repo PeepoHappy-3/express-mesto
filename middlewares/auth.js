@@ -10,6 +10,7 @@ module.exports = (req, res, next) => {
   } else {
     let payload;
     const token = req.cookies.jwt;
+    console.log(req);
     try {
       payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
     } catch (err) {
