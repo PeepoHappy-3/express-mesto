@@ -1,3 +1,5 @@
+/* eslint-disable func-names */
+/* eslint-disable prefer-arrow-callback */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
 require('dotenv').config();
@@ -26,7 +28,12 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(bodyParser.json());
 app.use(requestLogger);
-
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://mesto-praktikum.nomoredomains.monster');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  next();
+});
 app.post('/signin', validateUserLogin, login);
 app.post('/signup', validateUserCreate, createUser);
 app.use(cookieParser());
