@@ -24,7 +24,7 @@ module.exports.getCards = (req, res, next) => {
     .catch(next);
 };
 module.exports.deleteCard = (req, res, next) => {
-  Card.findById(req.params.cardId).populate(['owner', 'likes'])
+  Card.findById(req.params.cardId).populate(['owner'])
     .then(card => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
