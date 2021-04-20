@@ -80,7 +80,6 @@ module.exports.validateCreateCard = celebrate({
 
 module.exports.validateAuthorize = celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
 });
 
