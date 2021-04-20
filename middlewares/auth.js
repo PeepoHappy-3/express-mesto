@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
     next(new UnauthorizedError('Необходима авторизация'));
   } else {
     let payload;
-    const token = authorization.replace('Bearer ', '');
+    const token = req.cookies.jwt;
     try {
       payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
     } catch (err) {
