@@ -56,7 +56,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
-      } else card.populate(['owner', 'likes']).execPopulate().then(cards => res.send(cards)).catch(next);
+      } else res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
