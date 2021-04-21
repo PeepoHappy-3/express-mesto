@@ -44,11 +44,9 @@ module.exports.likeCard = (req, res, next) => {
     $addToSet: { likes: req.user._id },
   }, { new: true })
     .then((card) => {
-      card.populate(['owner', 'likes']).execPopulate().then(cards => {
-        if (!cards) {
-          throw new NotFoundError('Карточки с таким id не существует');
-        } else res.send(cards);
-      }).catch(next);
+      if (!card) {
+        throw new NotFoundError('Карточки с таким id не существует');
+      } else res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
