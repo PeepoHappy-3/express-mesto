@@ -113,3 +113,7 @@ module.exports.login = (req, res, next) => {
       next(new UnauthorizedError(err.message));
     });
 };
+
+module.exports.logout = (req, res) => {
+  res.clearCookie('jwt', { sameSite: 'none', secure: true }).send();
+};
