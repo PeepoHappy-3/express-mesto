@@ -7,7 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "npx eslint .",
         "start": "node app.js",
-        "dev": "nodemon app.js"
+        "dev": "nodemon app.js",
+        "deploy": "scp -r ./* praktikum@178.154.199.64:/home/praktikum/home/praktikum/backend/"
     },
     "repository": {
         "type": "git",

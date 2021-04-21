@@ -10,4 +10,7 @@ router.patch('/users/me/avatar', validateUpdateAvatar, updateAvatar);
 router.patch('/users/me', validateUpdateUser, updateUser);
 router.get('/users/me', getCurrentUser);
 router.get('/users/:userId', validateGetUser, getUser);
+router.get('/logout', (req, res) => {
+  res.clearCookie('jwt').send();
+});
 module.exports = router;
