@@ -53,6 +53,9 @@ app.get('/crash-test', () => {
 });
 app.post('/signin', validateUserLogin, login);
 app.post('/signup', validateUserCreate, createUser);
+app.get('/logout', (req, res) => {
+  res.clearCookie('jwt', { sameSite: 'none', secure: true }).send();
+});
 app.use(cookieParser());
 app.use(validateAuthorize, auth);
 
