@@ -10,21 +10,18 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.validate({ name, link, owner: req.user._id }).then(() => {
     Card.create({ name, link, owner: req.user._id })
-      .then((cards) => {
-        cards.populate(['owner', 'likes']).execPopulate().then((card) => res.send(card)).catch(next);
-      })
-      .catch(next);
+      .then((card) => res.send(card)).catch(next);
   }).catch(() => {
     next(new BadRequestError('Неверные данные'));
   });
 };
 module.exports.getCards = (req, res, next) => {
-  Card.find({}).populate(['owner', 'likes'])
+  Card.find({})
     .then((cards) => res.send(cards))
     .catch(next);
 };
 module.exports.deleteCard = (req, res, next) => {
-  Card.findById(req.params.cardId).populate(['owner', 'likes'])
+  Card.findById(req.params.cardId)
     .then(card => {
       if (!card) {
         throw new NotFoundError('Карточки с таким id не существует');
