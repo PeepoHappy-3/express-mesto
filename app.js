@@ -22,11 +22,17 @@ const { PORT = 3000 } = process.env;
 
 const allowedCors = [
   'https://mesto-praktikum.nomoredomains.monster',
-  'http://mesto-praktikum.nomoredomains.monster/',
+  'http://mesto-praktikum.nomoredomains.monster',
   'http://localhost:3000',
 ];
 const corsOptions = {
-  origin: allowedCors,
+  origin: function checkCorsList(origin, callback) {
+    if (allowedCors.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   optionsSuccessStatus: 200,
   credentials: true,
 };
