@@ -36,7 +36,6 @@ module.exports.validateUserLogin = celebrate({
 
 module.exports.validateUpdateUser = celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.required(),
   }).unknown(true),
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).messages({
